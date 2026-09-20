@@ -18,7 +18,7 @@
         .tier-diamond { background: linear-gradient(135deg, #22d3ee, #0891b2); }
         .progress-glow { box-shadow: 0 0 20px rgba(99, 102, 241, 0.2); }
         #observation-editor:empty::before { content: attr(data-placeholder); color: #94a3b8; }
-        .nav-indicator { position: absolute; bottom: 0; height: 3px; background: linear-gradient(90deg, #4f46e5, #7c3aed); border-radius: 2px 2px 0 0; transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1); }
+        .nav-indicator { position: absolute; bottom: 0.35rem; height: 3px; background: linear-gradient(90deg, #4f46e5, #7c3aed); border-radius: 2px 2px 0 0; transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1); pointer-events: none; z-index: 0; }
         @media (max-width: 767px) {
             #mobile-navigation { position: fixed; inset: auto 0 0; z-index: 60; }
         }
@@ -54,7 +54,7 @@
         #fab-button { position: fixed !important; right: 1rem; bottom: 5.75rem; width: 3.75rem; height: 3.75rem; max-width: calc(100vw - 2rem); z-index: 55; }
         #manager-bar { overflow: hidden; }
         #manager-bar > div > div:last-child { min-width: 0; max-width: 100%; }
-        #mobile-navigation button { min-width: 3.5rem; }
+        #mobile-navigation button { min-width: 3.5rem; border-radius: 0.75rem; }
         #desktop-navigation { display: none !important; }
         @media (min-width: 768px) {
             #desktop-navigation:not(.hidden) { display: block !important; }
@@ -299,7 +299,6 @@
         <div class="flex justify-center p-1.5 bg-slate-100 rounded-2xl max-w-sm mx-auto shadow-inner">
             <button onclick="switchPeriod('dia')" id="btn-dia" class="flex-1 py-2 text-xs font-bold rounded-xl transition-all">DIA</button>
             <button onclick="switchPeriod('semana')" id="btn-semana" class="flex-1 py-2 text-xs font-bold rounded-xl transition-all bg-white shadow-sm text-indigo-600">SEMANA</button>
-            <button onclick="switchPeriod('mes')" id="btn-mes" class="flex-1 py-2 text-xs font-bold rounded-xl transition-all">MÊS</button>
         </div>
 
         <!-- PERFORMANCE CARD -->
@@ -3056,16 +3055,26 @@
             const navConditional = document.getElementById('nav-conditional');
             const navProspecting = document.getElementById('nav-prospecting');
             const indicator = document.getElementById('nav-indicator');
+            const navOrder = [navInicio, navService, navSales, navTasks, navConditional, navProspecting];
+            const indexByPage = { dashboard: 0, service: 1, sales: 2, tasks: 3, conditional: 4, prospecting: 5 };
             document.querySelectorAll('[data-desktop-page]').forEach(button => { const active = button.dataset.desktopPage === pageName; button.classList.toggle('bg-indigo-600', active); button.classList.toggle('text-white', active); button.classList.toggle('text-slate-500', !active); });
 
             [tasksPage, salesPage, servicePage, conditionalPage, prospectingPage, managerOverviewPage, managerGoalsPage, managerReportPage, managerProspectingPage].forEach(page => { page.classList.remove('active'); page.classList.add('hidden'); });
-            [navInicio, navTasks, navSales, navService, navConditional, navProspecting].forEach(nav => { nav.classList.add('text-slate-300'); nav.classList.remove('text-indigo-600'); });
+            navOrder.forEach(nav => { nav.classList.add('text-slate-300'); nav.classList.remove('text-indigo-600'); });
+
+            const pageIndex = indexByPage[pageName] ?? 0;
+            const indicatorWidth = 100 / navOrder.length;
+            indicator.style.width = `${indicatorWidth}%`;
+            indicator.style.left = `${pageIndex * indicatorWidth}%`;
+            navOrder.forEach((nav, index) => {
+                nav.classList.toggle('bg-indigo-50', index === pageIndex);
+                nav.classList.toggle('shadow-sm', index === pageIndex);
+            });
 
             if (pageName === 'dashboard') {
                 dashboard.classList.remove('hidden');
                 navInicio.classList.remove('text-slate-300');
                 navInicio.classList.add('text-indigo-600');
-                indicator.style.left = '0%';
                 renderTasks();
                 renderDashboardServices();
                 renderDashboardConditionals();
@@ -3074,21 +3083,18 @@
                 servicePage.classList.remove('hidden');
                 navService.classList.remove('text-slate-300');
                 navService.classList.add('text-indigo-600');
-                indicator.style.left = '20%';
                 renderServices();
             } else if (pageName === 'sales') {
                 dashboard.classList.add('hidden');
                 salesPage.classList.remove('hidden');
                 navSales.classList.remove('text-slate-300');
                 navSales.classList.add('text-indigo-600');
-                indicator.style.left = '40%';
                 renderSales();
             } else if (pageName === 'tasks') {
                 dashboard.classList.add('hidden');
                 tasksPage.classList.add('active');
                 navTasks.classList.remove('text-slate-300');
                 navTasks.classList.add('text-indigo-600');
-                indicator.style.left = '60%';
                 const dateSelector = document.getElementById('task-date-selector');
                 dateSelector.value = currentSelectedDate;
                 renderDateCarousel();
@@ -3098,14 +3104,12 @@
                 conditionalPage.classList.remove('hidden');
                 navConditional.classList.remove('text-slate-300');
                 navConditional.classList.add('text-indigo-600');
-                indicator.style.left = '80%';
                 renderConditionals();
             } else if (pageName === 'prospecting') {
                 dashboard.classList.add('hidden');
                 prospectingPage.classList.remove('hidden');
                 navProspecting.classList.remove('text-slate-300');
                 navProspecting.classList.add('text-indigo-600');
-                indicator.style.left = '83.333%';
                 renderProspectingPage();
             } else if (pageName === 'manager-overview') {
                 dashboard.classList.add('hidden');
@@ -4151,10 +4155,6 @@
             const readOnly = getSession()?.role === 'gerente';
             const todayRecord = getTodayMoodRecord();
             const locked = Boolean(todayRecord);
-            if (locked && containerId === 'mood-options') {
-                optionsContainer.innerHTML = '<div class="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-[10px] font-bold text-emerald-700">Seu humor de hoje já foi registrado e não pode ser alterado.</div>';
-                return;
-            }
 
             optionsContainer.innerHTML = moodOptions.map(mood => {
                 const isDisabled = readOnly || locked;
@@ -4286,12 +4286,15 @@
         window.activeGoalPeriod = 'semana';
 
         function switchPeriod(p) {
-            ['dia', 'semana', 'mes'].forEach(item => {
-                document.getElementById('btn-' + item).classList.remove('bg-white', 'shadow-sm', 'text-indigo-600');
+            const normalizedPeriod = p === 'mes' ? 'semana' : p;
+            ['dia', 'semana'].forEach(item => {
+                const button = document.getElementById('btn-' + item);
+                if (button) button.classList.remove('bg-white', 'shadow-sm', 'text-indigo-600');
             });
-            document.getElementById('btn-' + p).classList.add('bg-white', 'shadow-sm', 'text-indigo-600');
+            const selectedButton = document.getElementById('btn-' + normalizedPeriod);
+            if (selectedButton) selectedButton.classList.add('bg-white', 'shadow-sm', 'text-indigo-600');
 
-            window.activeGoalPeriod = p;
+            window.activeGoalPeriod = normalizedPeriod;
             renderGoalCard();
         }
     </script>

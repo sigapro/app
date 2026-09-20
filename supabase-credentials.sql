@@ -108,12 +108,20 @@ create table if not exists public.prospeccao_listas (
     dias_disponiveis jsonb not null default '[]'::jsonb,
     contatos jsonb not null default '[]'::jsonb,
     mensagens jsonb not null default '[]'::jsonb,
+    tarefa_horario time,
+    tarefa_meta_tipo text not null default 'minimum',
+    tarefa_meta_valor integer not null default 1,
+    tarefa_vendedores jsonb not null default '[]'::jsonb,
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
 );
 
 alter table public.prospeccao_listas
     add column if not exists owner_id uuid references public.perfis(id) on delete cascade;
+alter table public.prospeccao_listas add column if not exists tarefa_horario time;
+alter table public.prospeccao_listas add column if not exists tarefa_meta_tipo text not null default 'minimum';
+alter table public.prospeccao_listas add column if not exists tarefa_meta_valor integer not null default 1;
+alter table public.prospeccao_listas add column if not exists tarefa_vendedores jsonb not null default '[]'::jsonb;
 
 grant select, insert, update, delete on public.prospeccao_listas to anon, authenticated;
 

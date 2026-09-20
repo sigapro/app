@@ -1499,10 +1499,9 @@
                 renderMasterPanel();
                 return;
             }
-            if (hash === 'app' || hash === 'prospecting' || hash === 'manager-report' || hash === 'manager-overview' || hash === 'manager-goals' || hash === 'manager-prospecting') {
+            if (hash === 'app' || hash === 'manager-report' || hash === 'manager-overview' || hash === 'manager-goals' || hash === 'manager-prospecting') {
                 if (session?.type !== 'user') { location.hash = ''; return; }
                     if (hash === 'app' && session.role === 'gerente' && !session.viewingUserId) { location.hash = 'manager-report'; return; }
-                    if (hash === 'prospecting' && session.role === 'gerente' && !session.viewingUserId) { location.hash = 'manager-prospecting'; return; }
                 if ((hash === 'manager-overview' || hash === 'manager-goals' || hash === 'manager-prospecting') && session.role !== 'gerente') { location.hash = 'app'; return; }
                 if (hash !== 'app' && session.role === 'gerente' && session.viewingUserId) {
                     session.viewingUserId = null;
@@ -1516,7 +1515,6 @@
                 if (hash === 'manager-report') showPage('manager-report');
                 if (hash === 'manager-goals') showPage('manager-goals');
                 if (hash === 'manager-prospecting') showPage('manager-prospecting');
-                if (hash === 'prospecting') showPage('prospecting');
                 return;
             }
             if (session?.type === 'master') { location.hash = 'master'; return; }
@@ -3389,27 +3387,19 @@
 
             const reasons = {};
             const products = {};
-            const productNames = [];
             records.forEach(item => {
                 const reason = item.outcomeLabel || 'Outro motivo';
                 reasons[reason] = (reasons[reason] || 0) + 1;
 
-                const productEntries = [...(item.products || []), ...(item.shownProducts || [])];
-                productEntries.forEach(product => {
+                const productNamesInRecord = new Set();
+                const selectedProducts = [...(item.products || []), ...(item.shownProducts || [])];
+                selectedProducts.forEach(product => {
                     const name = normalizeProductName(product);
-                    if (!name) return;
-                    products[name] = (products[name] || 0) + 1;
-                    productNames.push(name);
+                    if (name) productNamesInRecord.add(name);
                 });
-
-                const detail = item.demand?.trim() || (item.shownProducts || []).map(product => normalizeProductName(product)).filter(Boolean).join(', ');
-                if (detail) {
-                    const labels = detail.split(',').map(part => part.trim()).filter(Boolean);
-                    labels.forEach(label => {
-                        products[label] = (products[label] || 0) + 1;
-                        productNames.push(label);
-                    });
-                }
+                const demandLabels = String(item.demand || '').split(',').map(part => part.trim()).filter(Boolean);
+                demandLabels.forEach(label => productNamesInRecord.add(label));
+                productNamesInRecord.forEach(name => { products[name] = (products[name] || 0) + 1; });
             });
 
             const reasonTotal = Object.values(reasons).reduce((sum, value) => sum + value, 0) || 1;
@@ -3746,7 +3736,12 @@
         }
 
         function openNewTaskModal(selectedDate = null) {
-            pendingAddDate = selectedDate || pendingAddDate;
+            const requestedDate = selectedDate || pendingAddDate || currentSelectedDate;
+            if (requestedDate < getLocalDateKey()) {
+                showToast('Não é possível cadastrar tarefas em dias que já passaram.', 'error');
+                return;
+            }
+            pendingAddDate = requestedDate;
             document.getElementById('new-task-modal').classList.remove('hidden');
             document.getElementById('new-task-modal').classList.add('flex');
             document.getElementById('new-task-title-input').focus();
@@ -3782,7 +3777,7 @@
             document.getElementById('nav-sales').addEventListener('click', () => showPage('sales'));
             document.getElementById('nav-service').addEventListener('click', () => showPage('service'));
             document.getElementById('nav-conditional').addEventListener('click', () => showPage('conditional'));
-            document.getElementById('nav-prospecting').addEventListener('click', () => { location.hash = 'prospecting'; });
+            document.getElementById('nav-prospecting').addEventListener('click', () => showPage('prospecting'));
             document.getElementById('prospecting-date').addEventListener('change', event => { prospectingSelectedDate = event.target.value || getLocalDateKey(); renderProspectingPage(); });
             document.getElementById('prospecting-list-select').addEventListener('change', renderProspectingPage);
             document.getElementById('prospecting-message-select').addEventListener('change', renderProspectingPage);
@@ -3812,14 +3807,18 @@
                 const conditionalPage = document.getElementById('conditional-page');
                 const page = tasksPage.classList.contains('active') ? 'tasks' : !salesPage.classList.contains('hidden') ? 'sales' : !conditionalPage.classList.contains('hidden') ? 'conditional' : 'service';
                 const selectedDate = page === 'tasks' ? currentSelectedDate : page === 'sales' ? salesSelectedDate : page === 'conditional' ? serviceSelectedDate : serviceSelectedDate;
-                const today = getLocalDateKey();
-                const useSelectedDate = await siteChoice(`Deseja salvar este registro em ${new Date(`${selectedDate}T12:00:00`).toLocaleDateString('pt-BR')} ou usar a data de hoje (${new Date(`${today}T12:00:00`).toLocaleDateString('pt-BR')})?`, 'Usar data selecionada', 'Usar hoje', 'Data do registro');
-                if (useSelectedDate === null) return;
-                pendingAddDate = useSelectedDate ? selectedDate : today;
-                if (page === 'tasks') openNewTaskModal(pendingAddDate);
-                else if (page === 'sales') openNewSaleModal(pendingAddDate);
-                else if (page === 'conditional') openConditionalModal(null, pendingAddDate);
-                else openServiceModal(null, pendingAddDate);
+                if (page === 'tasks') {
+                    openNewTaskModal(selectedDate);
+                } else if (page === 'sales') {
+                    pendingAddDate = null;
+                    openNewSaleModal();
+                } else if (page === 'conditional') {
+                    pendingAddDate = null;
+                    openConditionalModal();
+                } else {
+                    pendingAddDate = null;
+                    openServiceModal();
+                }
             });
             document.getElementById('close-new-task').addEventListener('click', closeNewTaskModal);
             document.getElementById('cancel-new-task').addEventListener('click', closeNewTaskModal);
@@ -3848,6 +3847,10 @@
                 const repeatDays = Array.from(document.querySelectorAll('.task-repeat-day:checked')).map(input => Number(input.value));
                 const tasks = getTasks();
                 const taskDate = pendingAddDate || currentSelectedDate;
+                if (taskDate < getLocalDateKey()) {
+                    showToast('Não é possível cadastrar tarefas em dias que já passaram.', 'error');
+                    return;
+                }
                 const newTasks = repeatEnabled && repeatDays.length ? createRecurringTasks(title, time, taskDate, repeatDays) : [{ id: crypto.randomUUID(), title, time, owner: currentTaskOwnerRole(), completed: false, observation: '', date: taskDate }];
                 tasks.push(...newTasks);
                 saveTasks(tasks);

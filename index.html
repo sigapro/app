@@ -982,6 +982,18 @@
                 }
             }
 
+            if (table === 'atendimentos') {
+                const conditionalIds = [...new Set(rows.map(row => row.condicional_id || row.condicinal_id).filter(Boolean))];
+                if (conditionalIds.length) {
+                    const conditionals = getConditionals().filter(item => conditionalIds.includes(item.id));
+                    if (conditionals.length !== conditionalIds.length) {
+                        return new Error('Existe uma condicional vinculada ao atendimento que ainda não foi sincronizada.');
+                    }
+                    const { error } = await sigaSupabase.from('condicionais').upsert(conditionals.map(item => databaseRowFromApp('condicionais', item)));
+                    if (error) return error;
+                }
+            }
+
             if (table === 'metas_semanais') {
                 const monthlyIds = [...new Set(rows.map(row => row.meta_mensal_id).filter(Boolean))];
                 const monthlyGoals = getMonthlyGoals().filter(goal => monthlyIds.includes(goal.id));

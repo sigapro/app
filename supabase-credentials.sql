@@ -17,6 +17,88 @@ create unique index if not exists humor_registros_vendedor_data_key
     on public.humor_registros (vendedor_id, data);
 
 grant select, insert, update, delete on public.humor_registros to anon, authenticated;
+alter table public.humor_registros enable row level security;
+drop policy if exists humor_registros_anon_all on public.humor_registros;
+create policy humor_registros_anon_all
+    on public.humor_registros for all to anon, authenticated
+    using (true)
+    with check (true);
+
+create table if not exists public.condicionais (
+    id uuid primary key default gen_random_uuid(),
+    loja_id uuid not null references public.lojas(id) on delete cascade,
+    vendedor_id uuid not null references public.perfis(id) on delete cascade,
+    cliente text not null default '',
+    telefone text default '',
+    observacao text default '',
+    produtos jsonb not null default '[]'::jsonb,
+    prazo timestamptz,
+    status text not null default 'aberta',
+    task_id uuid,
+    created_at timestamptz not null default now()
+);
+
+grant select, insert, update, delete on public.condicionais to anon, authenticated;
+alter table public.condicionais enable row level security;
+drop policy if exists condicionais_anon_all on public.condicionais;
+create policy condicionais_anon_all
+    on public.condicionais for all to anon, authenticated
+    using (true)
+    with check (true);
+
+create table if not exists public.atendimentos (
+    id uuid primary key default gen_random_uuid(),
+    loja_id uuid not null references public.lojas(id) on delete cascade,
+    vendedor_id uuid not null references public.perfis(id) on delete cascade,
+    cliente text not null default '',
+    resultado text not null default 'other',
+    resultado_label text not null default '',
+    valor numeric(12,2) not null default 0,
+    telefone text default '',
+    observacao text default '',
+    produtos jsonb not null default '[]'::jsonb,
+    produtos_apresentados jsonb not null default '[]'::jsonb,
+    demanda text default '',
+    venda_id uuid,
+    condicional_id uuid references public.condicionais(id) on delete set null,
+    data_hora timestamptz not null default now()
+);
+
+grant select, insert, update, delete on public.atendimentos to anon, authenticated;
+alter table public.atendimentos enable row level security;
+drop policy if exists atendimentos_anon_all on public.atendimentos;
+create policy atendimentos_anon_all
+    on public.atendimentos for all to anon, authenticated
+    using (true)
+    with check (true);
+
+do $$
+begin
+    if to_regclass('public.atendimentos') is not null then
+        if exists (
+            select 1
+            from information_schema.columns
+            where table_schema = 'public'
+              and table_name = 'atendimentos'
+              and column_name = 'condicinal_id'
+        )
+        and not exists (
+            select 1
+            from information_schema.columns
+            where table_schema = 'public'
+              and table_name = 'atendimentos'
+              and column_name = 'condicional_id'
+        ) then
+            alter table public.atendimentos rename column condicinal_id to condicional_id;
+        end if;
+
+        alter table public.atendimentos drop constraint if exists atendimentos_condicinal_id_fkey;
+        alter table public.atendimentos drop constraint if exists atendimentos_condicional_id_fkey;
+        alter table public.atendimentos
+            add constraint atendimentos_condicional_id_fkey
+            foreign key (condicional_id) references public.condicionais(id) on delete set null;
+    end if;
+end $$;
 
 create table if not exists public.prospeccao_listas (
     id uuid primary key default gen_random_uuid(),

@@ -19,6 +19,9 @@
         .progress-glow { box-shadow: 0 0 20px rgba(99, 102, 241, 0.2); }
         #observation-editor:empty::before { content: attr(data-placeholder); color: #94a3b8; }
         .nav-indicator { position: absolute; bottom: 0.35rem; height: 3px; background: linear-gradient(90deg, #4f46e5, #7c3aed); border-radius: 2px 2px 0 0; transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1); pointer-events: none; z-index: 0; }
+        .nav-notification-dot { position: absolute; top: 0.35rem; right: 0.55rem; width: 0.5rem; height: 0.5rem; border-radius: 9999px; box-shadow: 0 0 0 2px #fff; pointer-events: none; }
+        .nav-notification-yellow { background: #f59e0b; }
+        .nav-notification-red { background: #ef4444; }
         @media (max-width: 767px) {
             #mobile-navigation { position: fixed; inset: auto 0 0; z-index: 60; }
         }
@@ -46,7 +49,7 @@
         #dashboard-page > section:not(:first-child), #dashboard-page > div > section, #dashboard-page > section + section { box-shadow: 0 12px 30px rgba(30, 41, 59, 0.045); }
         #dashboard-page > section:first-child { padding-top: 1.5rem; padding-bottom: 1.25rem; }
         #dashboard-page h2, #tasks-page h2, #sales-page h2, #service-page h2, #conditional-page h2, #prospecting-page h2, #manager-overview-page h2, #manager-report-page h2, #manager-goals-page h2, #manager-prospecting-page h2 { letter-spacing: -0.02em; }
-        .desktop-nav-button { min-height: 2.5rem; }
+        .desktop-nav-button { min-height: 2.5rem; position: relative; }
         #manager-bar > div { min-height: 2.75rem; }
         #manager-bar button, #manager-bar select { min-height: 2.25rem; }
         #mobile-navigation { box-shadow: 0 -8px 24px rgba(30, 41, 59, 0.08); }
@@ -55,6 +58,7 @@
         #manager-bar { overflow: hidden; }
         #manager-bar > div > div:last-child { min-width: 0; max-width: 100%; }
         #mobile-navigation button { min-width: 3.5rem; border-radius: 0.75rem; }
+        #desktop-navigation .nav-notification-dot { top: 0.35rem; right: 0.35rem; }
         #desktop-navigation { display: none !important; }
         @media (min-width: 768px) {
             #desktop-navigation:not(.hidden) { display: block !important; }
@@ -1739,6 +1743,7 @@
             document.getElementById('prospecting-contacts').innerHTML = contacts.length ? contacts.map(contact => `<article class="flex flex-col gap-3 rounded-2xl border ${contact.sent ? 'border-emerald-200 bg-emerald-50' : 'border-slate-100 bg-white'} p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"><div class="min-w-0"><p class="truncate text-sm font-black text-slate-800">${escapeHtml(contact.name)}</p><p class="mt-1 text-xs font-semibold text-slate-400">${escapeHtml(contact.phone)}</p></div><button type="button" data-send-prospecting="${contact.id}" class="flex shrink-0 items-center justify-center gap-2 rounded-xl ${contact.sent ? 'bg-emerald-500' : 'bg-green-600'} px-4 py-2.5 text-xs font-black text-white hover:brightness-105"><i data-lucide="${contact.sent ? 'check' : 'message-circle'}" class="h-4 w-4"></i>${contact.sent ? 'Mensagem enviada' : 'Enviar no WhatsApp'}</button></article>`).join('') : '<p class="rounded-2xl bg-white p-5 text-xs text-slate-400">Nenhum contato atribuído para esta lista.</p>';
             renderPersonalProspectingLibrary();
             lucide.createIcons();
+            updateNavigationNotifications();
         }
 
         function renderPersonalProspectingLibrary() {
@@ -3022,6 +3027,10 @@
             return '<span class="text-amber-600">Pendente</span>';
         }
 
+        async function confirmMissingClientName(type) {
+            return siteChoice(`Este ${type} está sem o nome do cliente. O nome ajuda a identificar o histórico, fazer o retorno e melhorar a prospecção. Deseja salvar mesmo assim?`, 'Salvar sem nome', 'Preencher nome', 'Nome do cliente');
+        }
+
         function escapeHtml(value) {
             return String(value || '').replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character]));
         }
@@ -3063,7 +3072,7 @@
                     ${!locked ? `<button type="button" data-observe-task="${task.id}" aria-label="Adicionar observação" class="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-white hover:text-indigo-600">
                         <i data-lucide="message-square-plus" class="w-4 h-4"></i>
                     </button>` : ''}
-                    ${showActions && !locked ? `<button type="button" data-edit-task="${task.id}" aria-label="Editar tarefa" class="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-white hover:text-indigo-600"><i data-lucide="pencil" class="w-4 h-4"></i></button><button type="button" data-delete-task="${task.id}" aria-label="Excluir tarefa" class="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-white hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+                    ${showActions && !locked && task.owner !== 'manager' ? `<button type="button" data-edit-task="${task.id}" aria-label="Editar tarefa" class="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-white hover:text-indigo-600"><i data-lucide="pencil" class="w-4 h-4"></i></button><button type="button" data-delete-task="${task.id}" aria-label="Excluir tarefa" class="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-white hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
                 </div>
             </article>`;
         }
@@ -3098,6 +3107,21 @@
         function refreshTaskViews() {
             renderTasks();
             if (document.getElementById('tasks-page').classList.contains('active')) renderTasksByDate(currentSelectedDate);
+            updateNavigationNotifications();
+        }
+
+        function refreshVisibleDataViews() {
+            renderTasks();
+            renderDashboardSales();
+            renderDashboardServices();
+            renderDashboardConditionals();
+            renderProductAnalytics();
+            if (!document.getElementById('sales-page').classList.contains('hidden')) renderSales();
+            if (!document.getElementById('service-page').classList.contains('hidden')) renderServices();
+            if (!document.getElementById('conditional-page').classList.contains('hidden')) renderConditionals();
+            if (!document.getElementById('prospecting-page').classList.contains('hidden')) renderProspectingPage();
+            if (document.getElementById('tasks-page').classList.contains('active')) renderTasksByDate(currentSelectedDate);
+            updateNavigationNotifications();
         }
 
         let currentSelectedDate = getLocalDateKey();
@@ -3138,6 +3162,7 @@
                 nav.classList.toggle('bg-indigo-50', index === pageIndex);
                 nav.classList.toggle('shadow-sm', index === pageIndex);
             });
+            updateNavigationNotifications();
 
             if (pageName === 'dashboard') {
                 dashboard.classList.remove('hidden');
@@ -3197,6 +3222,47 @@
                 managerReportPage.classList.remove('hidden');
                 initManagerReport();
             }
+        }
+
+        function navigationHasOpenTasks() {
+            return getTasks().some(task => !task.completed && !isPastTask(task));
+        }
+
+        function navigationHasOverdueTasks() {
+            return getTasks().some(task => isTaskOverdue(task));
+        }
+
+        function navigationHasOpenConditionals() {
+            return getConditionals().some(item => item.status === 'aberta' && !isConditionalOverdue(item));
+        }
+
+        function navigationHasOverdueConditionals() {
+            return getConditionals().some(item => isConditionalOverdue(item));
+        }
+
+        function navigationHasPendingProspecting() {
+            const date = prospectingSelectedDate || getLocalDateKey();
+            return getProspectingLists().filter(list => !list.isMessageLibrary && prospectingListAvailable(list, new Date(`${date}T12:00:00`))).some(list => assignedProspectingContacts(list).some(contact => !contact.sent));
+        }
+
+        function updateNavigationNotifications() {
+            const buttons = {
+                tasks: [document.getElementById('nav-tasks'), document.querySelector('[data-desktop-page="tasks"]')],
+                conditional: [document.getElementById('nav-conditional'), document.querySelector('[data-desktop-page="conditional"]')],
+                prospecting: [document.getElementById('nav-prospecting'), document.querySelector('[data-desktop-page="prospecting"]')]
+            };
+            const states = {
+                tasks: navigationHasOverdueTasks() ? 'red' : navigationHasOpenTasks() ? 'yellow' : '',
+                conditional: navigationHasOverdueConditionals() ? 'red' : navigationHasOpenConditionals() ? 'yellow' : '',
+                prospecting: navigationHasPendingProspecting() ? 'yellow' : ''
+            };
+            Object.entries(buttons).forEach(([key, elements]) => elements.forEach(button => {
+                if (!button) return;
+                let dot = button.querySelector('.nav-notification-dot');
+                if (!dot) { dot = document.createElement('span'); dot.className = 'nav-notification-dot'; button.appendChild(dot); }
+                dot.className = `nav-notification-dot ${states[key] ? `nav-notification-${states[key]}` : 'hidden'}`;
+                dot.setAttribute('aria-hidden', 'true');
+            }));
         }
 
         function setGoalPeriodDefaults() {
@@ -3560,6 +3626,7 @@
             document.getElementById('conditional-overdue-count').textContent = overdue.length;
             document.getElementById('conditional-list').innerHTML = conditionals.length ? conditionals.map(renderConditionalCard).join('') : '<p class="rounded-2xl bg-white p-5 text-xs text-slate-400">Nenhuma condicional registrada.</p>';
             lucide.createIcons();
+            updateNavigationNotifications();
         }
 
         function renderDashboardConditionals() {
@@ -3999,7 +4066,7 @@
             document.getElementById('close-conditional').addEventListener('click', closeConditionalModal);
             document.getElementById('cancel-conditional').addEventListener('click', closeConditionalModal);
             document.getElementById('task-repeat-toggle').addEventListener('change', event => document.getElementById('task-repeat-options').classList.toggle('hidden', !event.target.checked));
-            document.getElementById('new-task-form').addEventListener('submit', event => {
+            document.getElementById('new-task-form').addEventListener('submit', async event => {
                 event.preventDefault();
                 const title = document.getElementById('new-task-title-input').value.trim();
                 const time = document.getElementById('new-task-time-input').value;
@@ -4028,7 +4095,7 @@
                 event.target.reset();
                 document.getElementById('task-repeat-options').classList.add('hidden');
                 closeNewTaskModal();
-                refreshTaskViews();
+                refreshVisibleDataViews();
             });
             document.getElementById('task-date-selector').addEventListener('change', event => {
                 selectTaskDate(event.target.value);
@@ -4063,7 +4130,7 @@
                 card.classList.toggle('border-slate-200', !selected);
                 renderSaleProductOptions(getSelectedSaleProducts());
             });
-            document.getElementById('new-sale-form').addEventListener('submit', event => {
+            document.getElementById('new-sale-form').addEventListener('submit', async event => {
                 event.preventDefault();
                 const datetime = document.getElementById('sale-datetime-input').value;
                 const value = parseBrazilianNumber(document.getElementById('sale-value-input').value);
@@ -4073,15 +4140,17 @@
                     return;
                 }
                 const sales = getSales();
+                const client = document.getElementById('sale-client-input').value.trim();
+                if (!client && !(await confirmMissingClientName('venda'))) return;
                 const selectedSaleDate = pendingAddDate || datetime.slice(0, 10);
                 const saleDatetime = editingSaleId ? datetime : `${selectedSaleDate}T${datetime.slice(11, 16)}`;
-                const sale = { id: editingSaleId || crypto.randomUUID(), client: document.getElementById('sale-client-input').value.trim(), value, datetime: saleDatetime, date: saleDatetime.slice(0, 10), products };
+                const sale = { id: editingSaleId || crypto.randomUUID(), client, value, datetime: saleDatetime, date: saleDatetime.slice(0, 10), products };
                 const updatedSales = editingSaleId ? sales.map(item => item.id === editingSaleId ? sale : item) : [...sales, sale];
                 saveSales(updatedSales);
                 pendingAddDate = null;
                 event.target.reset();
                 closeNewSaleModal();
-                renderSales();
+                refreshVisibleDataViews();
             });
             document.getElementById('service-outcome').addEventListener('change', updateServiceFields);
             document.getElementById('service-product-options').addEventListener('click', event => { const card = event.target.closest('[data-sale-product]'); if (!card || event.target.closest('select')) return; const selected = card.classList.toggle('border-indigo-500'); card.classList.toggle('bg-indigo-50', selected); card.classList.toggle('border-slate-200', !selected); renderProductOptionsInto('service-product-options', getSelectedSaleProducts('service-product-options')); });
@@ -4089,7 +4158,7 @@
             document.getElementById('service-conditional-products').addEventListener('click', event => { const card = event.target.closest('[data-sale-product]'); if (!card || event.target.closest('select')) return; const selected = card.classList.toggle('border-indigo-500'); card.classList.toggle('bg-indigo-50', selected); card.classList.toggle('border-slate-200', !selected); renderProductOptionsInto('service-conditional-products', getSelectedSaleProducts('service-conditional-products')); });
             document.querySelectorAll('[data-service-period]').forEach(button => button.addEventListener('click', () => showServicePeriod(button.dataset.servicePeriod)));
             document.getElementById('service-date-carousel').addEventListener('click', event => { const button = event.target.closest('[data-service-date]'); if (button) { serviceSelectedDate = button.dataset.serviceDate; renderServices(); } });
-            document.getElementById('service-form').addEventListener('submit', event => {
+            document.getElementById('service-form').addEventListener('submit', async event => {
                 event.preventDefault();
                 const outcome = document.getElementById('service-outcome').value; const converted = outcome === 'converted'; const isConditional = outcome === 'conditional'; const products = getSelectedSaleProducts('service-product-options'); const shownProducts = getSelectedSaleProducts('service-shown-products'); const conditionalProducts = getSelectedSaleProducts('service-conditional-products'); const value = parseBrazilianNumber(document.getElementById('service-value').value); const phone = document.getElementById('service-phone').value.trim(); const conditionalTaskDate = document.getElementById('service-conditional-task-date').value; const conditionalTaskTime = document.getElementById('service-conditional-task-time').value;
                 if (!outcome) return showToast('Escolha o que aconteceu no atendimento.');
@@ -4099,15 +4168,16 @@
                 if (isConditional && (!conditionalTaskDate || !conditionalTaskTime)) return showToast('Escolha a data e o horário da tarefa de cobrança.');
                 const previousService = editingServiceId ? getServices().find(item => item.id === editingServiceId) : null; const existingSaleId = previousService?.saleId; const existingConditionalId = previousService?.conditionalId; const now = new Date(); const serviceDate = pendingAddDate || getLocalDateKey(); const datetime = previousService?.datetime || `${serviceDate}T${now.toTimeString().slice(0, 8)}`; const labels = { converted: 'Venda realizada', conditional: 'Levou condicional', authorized: 'Venda permitida / aguardando fechamento', 'no-product': 'Não tínhamos o produto', 'just-looking': 'Só estava olhando', expensive: 'Achou caro', 'no-decision': 'Não tomou decisão', competitor: 'Preferiu a concorrência', 'return-later': 'Vai voltar depois', other: 'Outro motivo' };
                 const client = document.getElementById('service-client').value.trim();
+                if (!client && !(await confirmMissingClientName('atendimento'))) return;
                 const service = { id: editingServiceId || crypto.randomUUID(), client, phone, outcome, outcomeLabel: labels[outcome], value: converted ? value : 0, products: converted ? products : (isConditional ? conditionalProducts : []), shownProducts: (!converted && !isConditional) ? shownProducts : [], demand: document.getElementById('service-demand').value.trim(), notes: document.getElementById('service-notes').value.trim(), datetime, date: datetime.slice(0, 10), saleId: existingSaleId, conditionalId: existingConditionalId };
                 const services = getServices(); saveServices(editingServiceId ? services.map(item => item.id === editingServiceId ? service : item) : [...services, service]);
                 if (converted) { const sales = getSales(); const sale = { id: existingSaleId || crypto.randomUUID(), client, value, datetime, date: service.date, products }; saveSales(existingSaleId ? sales.map(item => item.id === existingSaleId ? sale : item) : [...sales, sale]); service.saleId = sale.id; saveServices(getServices().map(item => item.id === service.id ? service : item)); } else if (existingSaleId) saveSales(getSales().filter(item => item.id !== existingSaleId));
                 if (isConditional) { const conditional = upsertConditionalRecord({ id: existingConditionalId, client, phone, products: conditionalProducts, observation: service.notes, taskDate: conditionalTaskDate, taskTime: conditionalTaskTime }); service.conditionalId = conditional.id; saveServices(getServices().map(item => item.id === service.id ? service : item)); } else if (existingConditionalId) { const conditional = getConditionals().find(item => item.id === existingConditionalId); saveConditionals(getConditionals().filter(item => item.id !== existingConditionalId)); if (conditional?.taskId) saveTasks(getTasks().filter(item => item.id !== conditional.taskId)); renderConditionals(); renderDashboardConditionals(); }
                 pendingAddDate = null;
-                closeServiceModal(); renderServices(); renderSales(); renderDashboardServices(); renderConditionals(); renderDashboardConditionals(); refreshTaskViews();
+                closeServiceModal(); refreshVisibleDataViews();
             });
             document.getElementById('conditional-product-options').addEventListener('click', event => { const card = event.target.closest('[data-sale-product]'); if (!card || event.target.closest('select')) return; const selected = card.classList.toggle('border-indigo-500'); card.classList.toggle('bg-indigo-50', selected); card.classList.toggle('border-slate-200', !selected); renderProductOptionsInto('conditional-product-options', getSelectedSaleProducts('conditional-product-options')); });
-            document.getElementById('conditional-form').addEventListener('submit', event => {
+            document.getElementById('conditional-form').addEventListener('submit', async event => {
                 event.preventDefault();
                 const client = document.getElementById('conditional-client').value.trim();
                 const phone = document.getElementById('conditional-phone').value.trim();
@@ -4119,9 +4189,7 @@
                 upsertConditionalRecord({ id: editingConditionalId, client, phone, products, observation: document.getElementById('conditional-observation').value.trim(), taskDate, taskTime });
                 pendingAddDate = null;
                 closeConditionalModal();
-                renderConditionals();
-                renderDashboardConditionals();
-                refreshTaskViews();
+                refreshVisibleDataViews();
             });
             document.addEventListener('click', async event => {
                 const toggleButton = event.target.closest('[data-toggle-task]');
@@ -4199,6 +4267,7 @@
                 if (editButton) {
                     const task = getTasks().find(item => item.id === editButton.dataset.editTask);
                     if (!task) return;
+                    if (task.owner === 'manager') return showToast('Esta tarefa foi criada pelo gerente e só pode ser alterada por ele.', 'error');
                     if (isPastTask(task)) return showToast('Tarefas de dias passados ficam registradas e não podem ser alteradas.');
                     const scope = await askTaskScope(task, 'Editar');
                     if (!scope) return;
@@ -4216,6 +4285,7 @@
                 const deleteButton = event.target.closest('[data-delete-task]');
                 if (deleteButton) {
                     const task = getTasks().find(item => item.id === deleteButton.dataset.deleteTask);
+                    if (task?.owner === 'manager') return showToast('Esta tarefa foi criada pelo gerente e só pode ser excluída por ele.', 'error');
                     const deletable = Boolean(task);
                     if (deletable && !isPastTask(task) && await siteConfirm('Excluir esta tarefa?')) {
                         const scope = await askTaskScope(task, 'Excluir');

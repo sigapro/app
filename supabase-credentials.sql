@@ -103,6 +103,7 @@ end $$;
 create table if not exists public.prospeccao_listas (
     id uuid primary key default gen_random_uuid(),
     loja_id uuid not null references public.lojas(id) on delete cascade,
+    owner_id uuid references public.perfis(id) on delete cascade,
     nome text not null,
     dias_disponiveis jsonb not null default '[]'::jsonb,
     contatos jsonb not null default '[]'::jsonb,
@@ -110,6 +111,9 @@ create table if not exists public.prospeccao_listas (
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
 );
+
+alter table public.prospeccao_listas
+    add column if not exists owner_id uuid references public.perfis(id) on delete cascade;
 
 grant select, insert, update, delete on public.prospeccao_listas to anon, authenticated;
 

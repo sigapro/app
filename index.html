@@ -503,14 +503,27 @@
     <!-- TELA DE PROSPECCAO -->
     <section id="prospecting-page" class="hidden max-w-5xl mx-auto p-4 space-y-6">
         <div class="flex items-center gap-3"><button type="button" data-back-dashboard aria-label="Voltar ao início" class="hidden h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 md:flex"><i data-lucide="arrow-left" class="h-4 w-4"></i></button><div><h2 class="text-2xl font-black text-slate-800">Prospecção</h2><p class="mt-1 text-xs font-medium text-slate-500">Fale com seus contatos usando mensagens prontas.</p></div></div>
-        <section class="rounded-[2rem] border border-sky-100 bg-white p-5 shadow-sm"><div class="grid gap-3 md:grid-cols-3"><label class="text-[10px] font-black uppercase tracking-wider text-slate-400">Data<input id="prospecting-date" type="date" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-bold outline-none"></label><label class="text-[10px] font-black uppercase tracking-wider text-slate-400">Lista de contatos<select id="prospecting-list-select" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-bold outline-none"></select></label><label class="text-[10px] font-black uppercase tracking-wider text-slate-400">Mensagem pronta<select id="prospecting-message-select" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-bold outline-none"></select></label></div><p id="prospecting-availability" class="mt-3 rounded-xl bg-sky-50 px-3 py-2 text-[10px] font-bold text-sky-700"></p></section>
+        <section class="rounded-[2rem] border border-sky-100 bg-white p-5 shadow-sm"><div class="grid gap-3 md:grid-cols-3"><label class="text-[10px] font-black uppercase tracking-wider text-slate-400">Data<input id="prospecting-date" type="date" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-bold outline-none"></label><label class="text-[10px] font-black uppercase tracking-wider text-slate-400">Lista de contatos<select id="prospecting-list-select" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-bold outline-none"></select></label><label class="text-[10px] font-black uppercase tracking-wider text-slate-400">Mensagem pronta<select id="prospecting-message-select" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-bold outline-none"></select></label></div><p id="prospecting-availability" class="mt-3 rounded-xl bg-sky-50 px-3 py-2 text-[10px] font-bold text-sky-700"></p><div class="mt-3 rounded-xl border border-slate-100 bg-slate-50 p-3"><p class="text-[10px] font-black uppercase tracking-wider text-slate-400">Texto da mensagem</p><p id="prospecting-message-preview" class="mt-2 whitespace-pre-line text-xs leading-relaxed text-slate-600"></p></div></section>
         <div id="prospecting-contacts" class="space-y-2"></div>
+        <section class="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm"><div class="flex items-center justify-between gap-3"><h3 class="text-sm font-black uppercase tracking-wider text-slate-800">Meus conteúdos</h3><span class="text-[10px] font-bold text-slate-400">Somente você pode editar</span></div><div id="prospecting-personal-library" class="mt-3 grid gap-2 md:grid-cols-2"></div></section>
     </section>
 
     <!-- FAB -->
     <button id="fab-button" class="fixed bottom-24 right-6 md:bottom-10 md:right-10 w-16 h-16 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-2xl shadow-indigo-300 hover:scale-110 active:scale-95 transition-all z-50">
         <i data-lucide="plus" class="w-8 h-8"></i>
     </button>
+
+    <div id="prospecting-create-modal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="prospecting-create-title">
+        <div class="w-full max-w-2xl overflow-hidden rounded-[2rem] bg-white shadow-2xl">
+            <div class="flex items-start justify-between border-b border-slate-100 p-5">
+                <div><p class="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500">Minha prospecção</p><h2 id="prospecting-create-title" class="mt-1 text-lg font-black text-slate-800">Criar conteúdo pessoal</h2><p class="mt-1 text-xs text-slate-500">Este conteúdo fica visível somente para você.</p></div>
+                <button type="button" id="close-prospecting-create" aria-label="Fechar" class="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200"><i data-lucide="x" class="h-4 w-4"></i></button>
+            </div>
+            <div class="flex gap-2 border-b border-slate-100 p-4"><button type="button" id="prospecting-create-list-tab" class="flex-1 rounded-xl bg-sky-50 px-3 py-2.5 text-xs font-black text-sky-700">Lista de contatos</button><button type="button" id="prospecting-create-message-tab" class="flex-1 rounded-xl px-3 py-2.5 text-xs font-black text-slate-400">Mensagem pronta</button></div>
+            <div id="prospecting-personal-list-panel" class="p-5"><form id="prospecting-personal-list-form" class="grid gap-3 md:grid-cols-2"><input type="hidden" id="prospecting-personal-list-editing-id"><label class="text-[10px] font-black uppercase tracking-wider text-slate-400">Nome da lista<input id="prospecting-personal-list-name" required maxlength="80" placeholder="Ex.: Aniversários" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-medium outline-none"></label><div><label class="text-[10px] font-black uppercase tracking-wider text-slate-400">Dias disponíveis</label><div id="prospecting-personal-days" class="mt-1 grid grid-cols-4 gap-1"></div><label class="mt-2 flex items-center gap-2 text-[10px] font-bold text-slate-500"><input id="prospecting-personal-all-days" type="checkbox" checked class="h-4 w-4 rounded border-slate-300 text-sky-600"> Todos os dias</label><div class="mt-2 flex gap-2"><input id="prospecting-personal-date" type="date" class="min-w-0 flex-1 rounded-xl border border-slate-200 px-2 py-2 text-xs font-bold"><button type="button" id="prospecting-personal-add-date" class="rounded-xl bg-slate-100 px-3 py-2 text-[10px] font-black text-slate-600">Adicionar</button></div><div id="prospecting-personal-selected-dates" class="mt-2 flex flex-wrap gap-1"></div></div><label class="text-[10px] font-black uppercase tracking-wider text-slate-400">Nomes, um por linha<textarea id="prospecting-personal-names" required rows="6" placeholder="Ana Silva&#10;Bruno Souza" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none"></textarea></label><label class="text-[10px] font-black uppercase tracking-wider text-slate-400">WhatsApps, na mesma ordem<textarea id="prospecting-personal-phones" required rows="6" placeholder="5511999999999&#10;5511988888888" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none"></textarea></label><div class="flex justify-end gap-2 md:col-span-2"><button type="button" id="cancel-prospecting-personal-list" class="rounded-xl px-4 py-2.5 text-xs font-bold text-slate-500">Cancelar</button><button type="submit" class="rounded-xl bg-sky-600 px-5 py-2.5 text-xs font-black text-white">Salvar lista</button></div></form></div>
+            <div id="prospecting-personal-message-panel" class="hidden p-5"><form id="prospecting-personal-message-form" class="space-y-3"><input type="hidden" id="prospecting-personal-message-editing-id"><label class="block text-[10px] font-black uppercase tracking-wider text-slate-400">Título<input id="prospecting-personal-message-title" required maxlength="80" placeholder="Mensagem de aniversário" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none"></label><label class="block text-[10px] font-black uppercase tracking-wider text-slate-400">Texto da mensagem<textarea id="prospecting-personal-message-body" required maxlength="1200" rows="6" placeholder="Olá, {{nome}}! Tudo bem?" class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none"></textarea></label><div class="rounded-xl border border-indigo-100 bg-indigo-50 p-3 text-[10px] leading-relaxed text-indigo-800"><div class="flex items-center justify-between gap-2"><strong>Como usar a mensagem</strong><button type="button" id="prospecting-help-button" aria-label="Explicar mensagem pronta" class="flex h-7 w-7 items-center justify-center rounded-lg bg-white text-indigo-600 shadow-sm"><i data-lucide="help-circle" class="h-4 w-4"></i></button></div><div id="prospecting-help-card" class="mt-2 hidden">Use <strong>{{nome}}</strong> para inserir automaticamente o nome do cliente. No WhatsApp, use <strong>*texto*</strong> para negrito, <strong>_texto_</strong> para itálico e <strong>~texto~</strong> para riscado.</div></div><div class="flex justify-end gap-2"><button type="button" id="cancel-prospecting-personal-message" class="rounded-xl px-4 py-2.5 text-xs font-bold text-slate-500">Cancelar</button><button type="submit" class="rounded-xl bg-indigo-600 px-5 py-2.5 text-xs font-black text-white">Salvar mensagem</button></div></form></div>
+        </div>
+    </div>
 
     <!-- MODAL DE NOVA TAREFA -->
     <div id="new-task-modal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="new-task-title">
@@ -804,7 +817,7 @@
             if (table === 'metas_semanais') return { id: item.id, loja_id: lojaId, meta_mensal_id: item.monthlyGoalId, nome: item.name, semana_inicio: item.weekStart, semana_fim: item.weekEnd, valor_total: item.total, distribuicao: item.distributions || [] };
             if (table === 'vendas_loja') return { id: item.id, loja_id: item.lojaId || getSession()?.lojaId || null, descricao: item.client || '', valor: Number(item.value || 0), data: item.date };
             if (table === 'produtos') return { id: item.id, nome: item.name, aceita_genero: item.gender === true, ativo: item.active !== false };
-            if (table === 'prospeccao_listas') return { id: item.id, loja_id: item.lojaId, nome: item.name, dias_disponiveis: item.days || [], contatos: item.contacts || [], mensagens: item.messages || [], created_at: item.createdAt, updated_at: item.updatedAt };
+            if (table === 'prospeccao_listas') return { id: item.id, loja_id: item.lojaId, owner_id: item.ownerId || null, nome: item.name, dias_disponiveis: item.days || [], contatos: item.contacts || [], mensagens: item.messages || [], created_at: item.createdAt, updated_at: item.updatedAt };
             return item;
         }
 
@@ -820,7 +833,7 @@
             if (table === 'metas_semanais') return { ...row, lojaId: row.loja_id, monthlyGoalId: row.meta_mensal_id, name: row.nome, weekStart: row.semana_inicio, weekEnd: row.semana_fim, total: Number(row.valor_total || 0), distributions: row.distribuicao || [] };
             if (table === 'vendas_loja') return { ...row, lojaId: row.loja_id, client: row.descricao, value: Number(row.valor || 0), date: row.data, datetime: `${row.data}T12:00:00`, storeSale: true };
             if (table === 'produtos') return { ...row, name: row.nome ?? row.name, gender: row.aceita_genero ?? row.gender ?? false, active: row.ativo !== false };
-            if (table === 'prospeccao_listas') return { ...row, lojaId: row.loja_id, name: row.nome ?? row.name, days: row.dias_disponiveis || [], contacts: row.contatos || [], messages: row.mensagens || [], createdAt: row.created_at, updatedAt: row.updated_at };
+            if (table === 'prospeccao_listas') return { ...row, lojaId: row.loja_id, ownerId: row.owner_id || null, name: row.nome ?? row.name, days: row.dias_disponiveis || [], contacts: row.contatos || [], messages: row.mensagens || [], createdAt: row.created_at, updatedAt: row.updated_at };
             return row;
         }
 
@@ -1610,7 +1623,12 @@
 
         function getProspectingLists() {
             const session = getSession();
-            return readStoredList(prospectingStorageKey).filter(list => list.lojaId === session?.lojaId);
+            const userId = effectiveUserId();
+            return readStoredList(prospectingStorageKey).filter(list => list.lojaId === session?.lojaId && (!list.ownerId || list.ownerId === userId));
+        }
+
+        function isPersonalProspectingItem(item) {
+            return Boolean(item?.ownerId && item.ownerId === effectiveUserId());
         }
 
         function saveProspectingLists(lists) {
@@ -1633,6 +1651,8 @@
 
         let prospectingSelectedDate = getLocalDateKey();
         let prospectingSelectedDays = new Set();
+        let personalProspectingSelectedDays = new Set();
+        let personalProspectingSelectedDates = new Set();
 
         function renderProspectingCalendar() {
             const calendar = document.getElementById('prospecting-calendar');
@@ -1687,7 +1707,9 @@
             const session = getSession();
             const vendors = getUsuarios().filter(user => user.lojaId === session?.lojaId && user.role === 'vendedor').sort((first, second) => first.id.localeCompare(second.id));
             const userId = effectiveUserId();
-            if (!vendors.length || !userId) return [];
+            if (!userId) return [];
+            if (isPersonalProspectingItem(list)) return list.contacts || [];
+            if (!vendors.length) return [];
             return (list.contacts || []).filter((contact, index) => vendors[index % vendors.length]?.id === userId).map(contact => ({ ...contact, sent: contact.sentBy?.includes(userId) }));
         }
 
@@ -1700,7 +1722,7 @@
             const listSelect = document.getElementById('prospecting-list-select');
             const messageSelect = document.getElementById('prospecting-message-select');
             if (!listSelect || !messageSelect) return;
-            const lists = getProspectingLists().filter(list => prospectingListAvailable(list, new Date(`${prospectingSelectedDate}T12:00:00`)));
+            const lists = getProspectingLists().filter(list => !list.isMessageLibrary && prospectingListAvailable(list, new Date(`${prospectingSelectedDate}T12:00:00`)));
             const previousList = listSelect.value;
             listSelect.innerHTML = lists.length ? lists.map(list => `<option value="${list.id}">${escapeHtml(list.name)} (${(list.contacts || []).length})</option>`).join('') : '<option value="">Nenhuma lista disponível hoje</option>';
             listSelect.value = lists.some(list => list.id === previousList) ? previousList : lists[0]?.id || '';
@@ -1709,11 +1731,24 @@
             messageSelect.innerHTML = messages.length ? messages.map(message => `<option value="${message.id}">${escapeHtml(message.title)}</option>`).join('') : '<option value="">Nenhuma mensagem cadastrada</option>';
             messageSelect.value = messages.some(message => message.id === previousMessage) ? previousMessage : messages[0]?.id || '';
             const list = lists.find(item => item.id === listSelect.value);
+            const selectedMessage = messages.find(item => item.id === messageSelect.value);
             document.getElementById('prospecting-date').value = prospectingSelectedDate;
             document.getElementById('prospecting-availability').textContent = list ? `${assignedProspectingContacts(list).length} contato(s) atribuídos a você nesta lista.` : 'Nenhuma lista disponível para hoje.';
+            document.getElementById('prospecting-message-preview').textContent = selectedMessage?.body || 'Nenhuma mensagem selecionada.';
             const contacts = list ? assignedProspectingContacts(list) : [];
             document.getElementById('prospecting-contacts').innerHTML = contacts.length ? contacts.map(contact => `<article class="flex flex-col gap-3 rounded-2xl border ${contact.sent ? 'border-emerald-200 bg-emerald-50' : 'border-slate-100 bg-white'} p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"><div class="min-w-0"><p class="truncate text-sm font-black text-slate-800">${escapeHtml(contact.name)}</p><p class="mt-1 text-xs font-semibold text-slate-400">${escapeHtml(contact.phone)}</p></div><button type="button" data-send-prospecting="${contact.id}" class="flex shrink-0 items-center justify-center gap-2 rounded-xl ${contact.sent ? 'bg-emerald-500' : 'bg-green-600'} px-4 py-2.5 text-xs font-black text-white hover:brightness-105"><i data-lucide="${contact.sent ? 'check' : 'message-circle'}" class="h-4 w-4"></i>${contact.sent ? 'Mensagem enviada' : 'Enviar no WhatsApp'}</button></article>`).join('') : '<p class="rounded-2xl bg-white p-5 text-xs text-slate-400">Nenhum contato atribuído para esta lista.</p>';
+            renderPersonalProspectingLibrary();
             lucide.createIcons();
+        }
+
+        function renderPersonalProspectingLibrary() {
+            const target = document.getElementById('prospecting-personal-library');
+            if (!target) return;
+            const lists = getProspectingLists().filter(list => isPersonalProspectingItem(list) && !list.isMessageLibrary);
+            const messages = getProspectingMessages().filter(message => isPersonalProspectingItem(message));
+            const listCards = lists.map(list => `<article class="rounded-xl border border-sky-100 bg-sky-50 p-3"><div class="flex items-start justify-between gap-2"><div><p class="text-xs font-black text-slate-700">${escapeHtml(list.name)}</p><p class="mt-1 text-[10px] text-slate-500">${(list.contacts || []).length} contato(s) · ${list.days?.length ? 'Dias selecionados' : 'Todos os dias'}</p></div><div class="flex gap-1"><button type="button" data-edit-personal-list="${list.id}" aria-label="Editar minha lista" class="rounded-lg p-2 text-slate-400 hover:bg-white hover:text-indigo-600"><i data-lucide="pencil" class="h-4 w-4"></i></button><button type="button" data-delete-personal-list="${list.id}" aria-label="Excluir minha lista" class="rounded-lg p-2 text-slate-400 hover:bg-white hover:text-red-600"><i data-lucide="trash-2" class="h-4 w-4"></i></button></div></div></article>`).join('');
+            const messageCards = messages.map(message => `<article class="rounded-xl border border-indigo-100 bg-indigo-50 p-3"><div class="flex items-start justify-between gap-2"><div class="min-w-0"><p class="text-xs font-black text-slate-700">${escapeHtml(message.title)}</p><p class="mt-1 line-clamp-3 whitespace-pre-line text-[10px] text-slate-600">${escapeHtml(message.body)}</p></div><div class="flex shrink-0 gap-1"><button type="button" data-edit-personal-message="${message.id}" aria-label="Editar minha mensagem" class="rounded-lg p-2 text-slate-400 hover:bg-white hover:text-indigo-600"><i data-lucide="pencil" class="h-4 w-4"></i></button><button type="button" data-delete-personal-message="${message.id}" aria-label="Excluir minha mensagem" class="rounded-lg p-2 text-slate-400 hover:bg-white hover:text-red-600"><i data-lucide="trash-2" class="h-4 w-4"></i></button></div></div></article>`).join('');
+            target.innerHTML = listCards + messageCards || '<p class="text-xs text-slate-400">Você ainda não criou listas ou mensagens pessoais.</p>';
         }
 
         function renderManagerProspecting() {
@@ -1729,6 +1764,41 @@
             document.getElementById('prospecting-message-editing-id').value = message.id;
             document.getElementById('prospecting-message-title').value = message.title;
             document.getElementById('prospecting-message-body').value = message.body;
+        }
+
+        function closeProspectingCreateModal() {
+            const modal = document.getElementById('prospecting-create-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.getElementById('prospecting-personal-list-form').reset();
+            document.getElementById('prospecting-personal-message-form').reset();
+            document.getElementById('prospecting-personal-list-editing-id').value = '';
+            document.getElementById('prospecting-personal-message-editing-id').value = '';
+            document.getElementById('prospecting-personal-all-days').checked = true;
+            personalProspectingSelectedDays.clear();
+            personalProspectingSelectedDates.clear();
+            document.getElementById('prospecting-help-card').classList.add('hidden');
+            renderPersonalProspectingDays();
+        }
+
+        function openProspectingCreateModal(mode = 'list') {
+            const modal = document.getElementById('prospecting-create-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            const listMode = mode === 'list';
+            document.getElementById('prospecting-personal-list-panel').classList.toggle('hidden', !listMode);
+            document.getElementById('prospecting-personal-message-panel').classList.toggle('hidden', listMode);
+            document.getElementById('prospecting-create-list-tab').className = listMode ? 'flex-1 rounded-xl bg-sky-50 px-3 py-2.5 text-xs font-black text-sky-700' : 'flex-1 rounded-xl px-3 py-2.5 text-xs font-black text-slate-400';
+            document.getElementById('prospecting-create-message-tab').className = listMode ? 'flex-1 rounded-xl px-3 py-2.5 text-xs font-black text-slate-400' : 'flex-1 rounded-xl bg-indigo-50 px-3 py-2.5 text-xs font-black text-indigo-700';
+            renderPersonalProspectingDays();
+        }
+
+        function renderPersonalProspectingDays() {
+            const target = document.getElementById('prospecting-personal-days');
+            if (!target) return;
+            const labels = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+            target.innerHTML = labels.map((label, index) => `<button type="button" data-personal-day="${index}" class="rounded-lg border px-1 py-2 text-[10px] font-black ${personalProspectingSelectedDays.has(String(index)) ? 'border-sky-500 bg-sky-500 text-white' : 'border-slate-200 bg-slate-50 text-slate-400'}">${label}</button>`).join('');
+            document.getElementById('prospecting-personal-selected-dates').innerHTML = [...personalProspectingSelectedDates].sort().map(date => `<button type="button" data-remove-personal-date="${date}" class="rounded-full bg-sky-50 px-2 py-1 text-[9px] font-bold text-sky-700">${date.split('-').reverse().join('/')} ×</button>`).join('');
         }
 
         function sendProspectingMessage(contactId) {
@@ -3785,6 +3855,104 @@
                 const button = event.target.closest('[data-send-prospecting]');
                 if (button) sendProspectingMessage(button.dataset.sendProspecting);
             });
+            document.getElementById('prospecting-personal-library').addEventListener('click', async event => {
+                const editList = event.target.closest('[data-edit-personal-list]');
+                if (editList) {
+                    const list = getProspectingLists().find(item => item.id === editList.dataset.editPersonalList && isPersonalProspectingItem(item));
+                    if (!list) return;
+                    document.getElementById('prospecting-personal-list-editing-id').value = list.id;
+                    document.getElementById('prospecting-personal-list-name').value = list.name;
+                    document.getElementById('prospecting-personal-names').value = (list.contacts || []).map(item => item.name).join('\n');
+                    document.getElementById('prospecting-personal-phones').value = (list.contacts || []).map(item => item.phone).join('\n');
+                    personalProspectingSelectedDays = new Set((list.days || []).filter(day => /^[0-6]$/.test(day)));
+                    personalProspectingSelectedDates = new Set((list.days || []).filter(day => /^\d{4}-\d{2}-\d{2}$/.test(day)));
+                    document.getElementById('prospecting-personal-all-days').checked = !personalProspectingSelectedDays.size && !personalProspectingSelectedDates.size;
+                    openProspectingCreateModal('list');
+                    return;
+                }
+                const deleteList = event.target.closest('[data-delete-personal-list]');
+                if (deleteList && await siteConfirm('Excluir sua lista e seus contatos?')) {
+                    saveProspectingLists(readStoredList(prospectingStorageKey).filter(item => item.id !== deleteList.dataset.deletePersonalList || !isPersonalProspectingItem(item)));
+                    renderProspectingPage();
+                    return;
+                }
+                const editMessage = event.target.closest('[data-edit-personal-message]');
+                if (editMessage) {
+                    const message = getProspectingMessages().find(item => item.id === editMessage.dataset.editPersonalMessage && isPersonalProspectingItem(item));
+                    if (!message) return;
+                    document.getElementById('prospecting-personal-message-editing-id').value = message.id;
+                    document.getElementById('prospecting-personal-message-title').value = message.title;
+                    document.getElementById('prospecting-personal-message-body').value = message.body;
+                    openProspectingCreateModal('message');
+                    return;
+                }
+                const deleteMessage = event.target.closest('[data-delete-personal-message]');
+                if (deleteMessage && await siteConfirm('Excluir sua mensagem pronta?')) {
+                    saveProspectingLists(readStoredList(prospectingStorageKey).map(list => isPersonalProspectingItem(list) ? { ...list, messages: (list.messages || []).filter(message => message.id !== deleteMessage.dataset.deletePersonalMessage) } : list));
+                    renderProspectingPage();
+                }
+            });
+            document.getElementById('close-prospecting-create').addEventListener('click', closeProspectingCreateModal);
+            document.getElementById('cancel-prospecting-personal-list').addEventListener('click', closeProspectingCreateModal);
+            document.getElementById('cancel-prospecting-personal-message').addEventListener('click', closeProspectingCreateModal);
+            document.getElementById('prospecting-create-list-tab').addEventListener('click', () => openProspectingCreateModal('list'));
+            document.getElementById('prospecting-create-message-tab').addEventListener('click', () => openProspectingCreateModal('message'));
+            document.getElementById('prospecting-help-button').addEventListener('click', () => document.getElementById('prospecting-help-card').classList.toggle('hidden'));
+            document.getElementById('prospecting-personal-all-days').addEventListener('change', event => { if (event.target.checked) { personalProspectingSelectedDays.clear(); personalProspectingSelectedDates.clear(); } renderPersonalProspectingDays(); });
+            document.getElementById('prospecting-personal-days').addEventListener('click', event => {
+                const button = event.target.closest('[data-personal-day]');
+                if (!button) return;
+                document.getElementById('prospecting-personal-all-days').checked = false;
+                const day = button.dataset.personalDay;
+                if (personalProspectingSelectedDays.has(day)) personalProspectingSelectedDays.delete(day); else personalProspectingSelectedDays.add(day);
+                renderPersonalProspectingDays();
+            });
+            document.getElementById('prospecting-personal-add-date').addEventListener('click', () => {
+                const date = document.getElementById('prospecting-personal-date').value;
+                if (!date) return;
+                personalProspectingSelectedDates.add(date);
+                document.getElementById('prospecting-personal-all-days').checked = false;
+                document.getElementById('prospecting-personal-date').value = '';
+                renderPersonalProspectingDays();
+            });
+            document.getElementById('prospecting-personal-selected-dates').addEventListener('click', event => {
+                const button = event.target.closest('[data-remove-personal-date]');
+                if (button) { personalProspectingSelectedDates.delete(button.dataset.removePersonalDate); renderPersonalProspectingDays(); }
+            });
+            document.getElementById('prospecting-personal-list-form').addEventListener('submit', event => {
+                event.preventDefault();
+                const name = document.getElementById('prospecting-personal-list-name').value.trim();
+                const names = document.getElementById('prospecting-personal-names').value.split(/\r?\n/).map(item => item.trim()).filter(Boolean);
+                const phones = document.getElementById('prospecting-personal-phones').value.split(/\r?\n/).map(item => item.trim()).filter(Boolean);
+                if (!name || !names.length || names.length !== phones.length) return showToast('Informe a mesma quantidade de nomes e WhatsApps, na mesma ordem.', 'error');
+                const editingId = document.getElementById('prospecting-personal-list-editing-id').value;
+                const allLists = readStoredList(prospectingStorageKey);
+                const existing = allLists.find(list => list.id === editingId && isPersonalProspectingItem(list));
+                const ownerId = effectiveUserId();
+                const contacts = names.map((contactName, index) => ({ id: `${editingId || crypto.randomUUID()}-${index}`, name: contactName, phone: phones[index], sentBy: existing?.contacts?.find(contact => contact.id === `${editingId}-${index}`)?.sentBy || [] }));
+                const list = { ...(existing || {}), id: editingId || crypto.randomUUID(), lojaId: getSession()?.lojaId, ownerId, name, days: document.getElementById('prospecting-personal-all-days').checked ? [] : [...personalProspectingSelectedDays, ...personalProspectingSelectedDates], contacts, messages: existing?.messages || [], createdAt: existing?.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString() };
+                saveProspectingLists(editingId ? allLists.map(item => item.id === editingId ? list : item) : [...allLists, list]);
+                closeProspectingCreateModal();
+                renderProspectingPage();
+            });
+            document.getElementById('prospecting-personal-message-form').addEventListener('submit', event => {
+                event.preventDefault();
+                const title = document.getElementById('prospecting-personal-message-title').value.trim();
+                const body = document.getElementById('prospecting-personal-message-body').value.trim();
+                if (!title || !body) return;
+                const id = document.getElementById('prospecting-personal-message-editing-id').value || crypto.randomUUID();
+                const message = { id, title, body, ownerId: effectiveUserId() };
+                const allLists = readStoredList(prospectingStorageKey);
+                const personalLists = allLists.filter(isPersonalProspectingItem);
+                if (personalLists.length) {
+                    const updated = allLists.map(list => isPersonalProspectingItem(list) ? { ...list, messages: [...(list.messages || []).filter(item => item.id !== id), message] } : list);
+                    saveProspectingLists(updated);
+                } else {
+                    saveProspectingLists([...allLists, { id: crypto.randomUUID(), lojaId: getSession()?.lojaId, ownerId: effectiveUserId(), name: 'Mensagens pessoais', days: [], contacts: [], messages: [message], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), isMessageLibrary: true }]);
+                }
+                closeProspectingCreateModal();
+                renderProspectingPage();
+            });
             document.querySelectorAll('[data-desktop-page]').forEach(button => button.addEventListener('click', () => showPage(button.dataset.desktopPage)));
             document.querySelectorAll('[data-back-dashboard]').forEach(button => button.addEventListener('click', () => showPage('dashboard')));
             document.getElementById('dashboard-sales-title').addEventListener('click', () => showPage('sales'));
@@ -3805,7 +3973,9 @@
                 const salesPage = document.getElementById('sales-page');
                 const servicePage = document.getElementById('service-page');
                 const conditionalPage = document.getElementById('conditional-page');
-                const page = tasksPage.classList.contains('active') ? 'tasks' : !salesPage.classList.contains('hidden') ? 'sales' : !conditionalPage.classList.contains('hidden') ? 'conditional' : 'service';
+                const prospectingPage = document.getElementById('prospecting-page');
+                const page = prospectingPage && !prospectingPage.classList.contains('hidden') ? 'prospecting' : tasksPage.classList.contains('active') ? 'tasks' : !salesPage.classList.contains('hidden') ? 'sales' : !conditionalPage.classList.contains('hidden') ? 'conditional' : 'service';
+                if (page === 'prospecting') return openProspectingCreateModal('list');
                 const selectedDate = page === 'tasks' ? currentSelectedDate : page === 'sales' ? salesSelectedDate : page === 'conditional' ? serviceSelectedDate : serviceSelectedDate;
                 if (page === 'tasks') {
                     openNewTaskModal(selectedDate);

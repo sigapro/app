@@ -138,6 +138,7 @@ create table if not exists public.treinamentos (
     loja_id uuid not null references public.lojas(id) on delete cascade,
     titulo text not null,
     video_url text default '',
+    audio_url text default '',
     pdf_url text default '',
     disponibilidade jsonb not null default '{}'::jsonb,
     vendedor_ids jsonb not null default '[]'::jsonb,
@@ -145,6 +146,9 @@ create table if not exists public.treinamentos (
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
 );
+
+alter table public.treinamentos
+    add column if not exists audio_url text default '';
 
 grant select, insert, update, delete on public.treinamentos to anon, authenticated;
 alter table public.treinamentos enable row level security;
